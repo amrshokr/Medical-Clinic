@@ -7,16 +7,17 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.medical.clinic.exception.MedicalException;
-import com.medical.clinic.model.CreationResponse;
 import com.medical.clinic.model.AppiontementResponse;
-import com.medical.clinic.model.CancelAppiontementModel;
 import com.medical.clinic.model.CancellationReasonEnum;
 import com.medical.clinic.model.CreateDoctorModel;
 import com.medical.clinic.model.CreatePataintModel;
+import com.medical.clinic.model.CreationResponse;
 import com.medical.clinic.model.Doctor;
 import com.medical.clinic.model.MedicalAppiontement;
 import com.medical.clinic.model.MedicalAppiontementRequest;
@@ -28,6 +29,8 @@ import com.medical.clinic.util.Constants;
 
 @Service
 public class MedicalService {
+	
+	private static final Logger log = LoggerFactory.getLogger(MedicalService.class);
 
 	@Autowired
 	DoctorRepositry doctorRepositry;
@@ -51,7 +54,7 @@ public class MedicalService {
 			doctorRepositry.save(doctor);
 			appiontementModel.setId(doctor.getDoctorId());
 			appiontementModel.setStatus(Constants.SUCCESS);
-
+			log.info("Created Doctor name: "+createDoctorModel.getDoctorName() +" Id :"+doctor.getDoctorId());
 		} catch (Exception e) {
 			appiontementModel.setError(e.getLocalizedMessage());
 			appiontementModel.setStatus(Constants.FAIL);
@@ -68,7 +71,7 @@ public class MedicalService {
 			patientRepository.save(patient);
 			appiontementModel.setId(patient.getPatientId());
 			appiontementModel.setStatus(Constants.SUCCESS);
-
+			log.info("Created Patient name: "+patient.getPatientName() +" Id :"+patient.getPatientName());
 		} catch (Exception e) {
 			appiontementModel.setError(e.getLocalizedMessage());
 			appiontementModel.setStatus(Constants.FAIL);
@@ -100,7 +103,7 @@ public class MedicalService {
 			appiontementReposirty.save(appiontement);
 			appiontementModel.setId(appiontement.getAppiontementId());
 			appiontementModel.setStatus(Constants.SUCCESS);
-
+			log.info("Created MedicalAppiontement  Id :"+appiontementModel.getId());
 		} catch (Exception e) {
 			appiontementModel.setError(e.getLocalizedMessage());
 			appiontementModel.setStatus(Constants.FAIL);
@@ -110,6 +113,7 @@ public class MedicalService {
 
 	public CreationResponse cancelAppiontementById(BigDecimal appiontementId, CancellationReasonEnum cancelReason) {
 		CreationResponse appiontementModel = new CreationResponse();
+		try {
 		MedicalAppiontement medicalAppiontement = appiontementReposirty.findByAppiontementId(appiontementId);
 		if (medicalAppiontement != null) {
 			medicalAppiontement.setReason(cancelReason.name());
@@ -117,8 +121,13 @@ public class MedicalService {
 			appiontementReposirty.save(medicalAppiontement);
 			appiontementModel.setId(medicalAppiontement.getAppiontementId());
 			appiontementModel.setStatus(Constants.CANCELLED_SUCCESSFULLY);
+			log.info("Cancel MedicalAppiontement  Id :"+appiontementModel.getId());
 		} else {
 			throw new MedicalException("No Record Found!");
+		}
+		} catch (Exception e) {
+			appiontementModel.setError(e.getLocalizedMessage());
+			appiontementModel.setStatus(Constants.FAIL);
 		}
 		return appiontementModel;
 	}
